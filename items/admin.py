@@ -9,3 +9,9 @@ class ItemAdmin(admin.ModelAdmin):
     fields = ('password',)
     list_display = ('uuid', '__str__', 'create_date')
     form = ItemPasswordForm
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
