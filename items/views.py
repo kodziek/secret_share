@@ -3,16 +3,17 @@ import string
 
 from django.contrib import messages
 from django.contrib.auth.hashers import make_password
+from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
 from django.views.generic import CreateView
 
 from items.forms import ItemForm
 
 
-class CreateItemView(CreateView):
+class CreateItemView(LoginRequiredMixin, CreateView):
     form_class = ItemForm
     template_name = 'items/form.html'
-    success_url = reverse_lazy('create-item')
+    success_url = reverse_lazy('items:create')
 
     def _generate_random_password(self):
         characters = string.ascii_letters + string.digits
