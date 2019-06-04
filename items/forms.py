@@ -1,4 +1,5 @@
 from django import forms
+from django.contrib.auth.hashers import check_password
 from django.core.exceptions import ValidationError
 
 from items.models import Item
@@ -29,4 +30,18 @@ class ItemForm(forms.ModelForm):
                 'Cannot use both fields (url and file) at the same time.',
             )
 
+        return self.cleaned_data
+
+
+class ItemAccessForm(forms.Form):
+    password = forms.CharField(widget=forms.PasswordInput)
+
+    def __init__(self, object, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.object = object
+
+    def clean(self):
+        password = self.cleaned_data.get('password')
+        if not check_password(password, self.object.password):
+            raise ValidationError('Incorrect password.')
         return self.cleaned_data
