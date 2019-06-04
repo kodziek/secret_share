@@ -3,7 +3,7 @@ from datetime import datetime
 
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
-from django.db import models
+from django.db import models, transaction
 
 
 class ItemManager(models.QuerySet):
@@ -22,8 +22,16 @@ class Item(models.Model):
     password = models.CharField(max_length=128)
     url = models.TextField(null=True, blank=True)
     file = models.FileField(null=True, blank=True)
+    visit_count = models.PositiveIntegerField(default=0)
 
     objects = ItemManager.as_manager()
 
     def __str__(self):
         return self.url or str(self.file)
+
+    @classmethod
+    def increment_visit_count(cls, pk):
+        with transaction.atomic():
+            item = cls.objects.select_for_update().get(pk=pk)
+            item.visit_count += 1
+            item.save()

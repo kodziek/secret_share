@@ -53,6 +53,7 @@ class GetItemView(FormView):
         return kwargs
 
     def form_valid(self, form):
+        Item.increment_visit_count(self.object.pk)
         if self.object.file:
             return FileResponse(self.object.file)
 
