@@ -10,6 +10,8 @@ pycodestyle = "*"
 django = "*"
 django-debug-toolbar = "*"
 uuid = "*"
+dateutil = "*"
+python-dateutil = "*"
 
 [requires]
 python_version = "3.7"
