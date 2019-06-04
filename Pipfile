@@ -9,6 +9,7 @@ pycodestyle = "*"
 [packages]
 django = "*"
 django-debug-toolbar = "*"
+uuid = "*"
 
 [requires]
 python_version = "3.7"

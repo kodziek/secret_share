@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <form method="post" enctype="multipart/form-data" novalidate>
+        {%  csrf_token %}
+        {{ form }}
+        <button>Save</button>
+    </form>
+{% endblock %}
