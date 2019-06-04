@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.hashers import check_password
+from django.contrib.auth.hashers import check_password, make_password
 from django.core.exceptions import ValidationError
 
 from items.models import Item
@@ -45,3 +45,15 @@ class ItemAccessForm(forms.Form):
         if not check_password(password, self.object.password):
             raise ValidationError('Incorrect password.')
         return self.cleaned_data
+
+
+class ItemPasswordForm(forms.ModelForm):
+    class Meta:
+        fields = ('password',)
+        widgets = {
+            'password': forms.PasswordInput,
+        }
+
+    def clean_password(self):
+        password = self.cleaned_data.get('password')
+        return make_password(password)
