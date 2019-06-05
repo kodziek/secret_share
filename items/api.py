@@ -1,17 +1,27 @@
 from django.contrib.auth.hashers import check_password
 from django.http import Http404, FileResponse
 from django.shortcuts import redirect
-from rest_framework.generics import RetrieveAPIView
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.viewsets import ModelViewSet
 
 from items.models import Item
-from items.serializers import ItemSerializer
+from items.serializers import ItemSerializer, ItemCreateSerializer
 
 
-class GetItemApiView(RetrieveAPIView):
+class ItemApiViewSet(ModelViewSet):
     queryset = Item.objects.all()
-    serializer_class = ItemSerializer
     lookup_field = 'uuid'
-    http_method_names = ('get',)
+    http_method_names = ('get', 'post')
+
+    def get_permissions(self):
+        if self.action == 'create':
+            return [IsAuthenticated()]
+        return []
+
+    def get_serializer_class(self):
+        if self.action == 'retrieve':
+            return ItemSerializer
+        return ItemCreateSerializer
 
     def get_object(self):
         obj = super().get_object()
