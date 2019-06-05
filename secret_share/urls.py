@@ -17,6 +17,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.urls import include, path
+from rest_framework.authtoken.views import obtain_auth_token
 
 from items.api import GetItemApiView
 
@@ -25,6 +26,7 @@ urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('item/', include('items.urls')),
+    path('api/login/', obtain_auth_token),
     path('api/items/<uuid:uuid>/', GetItemApiView.as_view())
 ]
 
