@@ -1,3 +1,4 @@
+from django.contrib.auth.hashers import make_password
 from django.urls import reverse
 from rest_framework import serializers
 
@@ -17,9 +18,8 @@ class ItemResponseSerializer(serializers.Serializer):
     password = serializers.CharField()
 
     def get_url(self, obj):
-        request = self.context.pop()
-        return request.build_absolute_uri(
-            reverse('items:get', kwargs={'uuid': obj.uuid})
+        return self.context.build_absolute_uri(
+            reverse('item-detail', kwargs={'uuid': obj.uuid})
         )
 
 
@@ -37,12 +37,15 @@ class ItemCreateSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         password = generate_random_password()
         item = Item.objects.create(
-            user=self.context['request'].user, password=password,
+            user=self.context['request'].user,
+            password=make_password(password),
             **validated_data,
         )
+        # hack to show plain text password in API response
+        item.password = password
         return item
 
     def to_representation(self, instance):
         return ItemResponseSerializer(
-            instance, context={self.context['request']},
+            instance, context=self.context['request'],
         ).data
