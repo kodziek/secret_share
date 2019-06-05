@@ -25,6 +25,7 @@ class ItemResponseSerializer(serializers.Serializer):
 
 class ItemCreateSerializer(serializers.ModelSerializer):
     password = serializers.CharField(required=False)
+    url = serializers.URLField(required=False)
 
     class Meta:
         model = Item
