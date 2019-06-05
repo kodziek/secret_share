@@ -3,4 +3,4 @@ from django.db import models
 
 
 class User(AbstractUser):
-    last_user_agent = models.TextField()
+    last_user_agent = models.TextField(blank=True)
