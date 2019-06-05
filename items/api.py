@@ -1,12 +1,14 @@
 from django.contrib.auth.hashers import check_password
-from django.http import Http404, FileResponse
+from django.http import FileResponse, Http404
 from django.shortcuts import redirect
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.renderers import JSONRenderer
+from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from items.models import Item
-from items.serializers import ItemSerializer, ItemCreateSerializer
+from items.serializers import ItemCreateSerializer, ItemSerializer
 
 
 class ItemApiViewSet(ModelViewSet):
@@ -38,3 +40,31 @@ class ItemApiViewSet(ModelViewSet):
         if item.url:
             return redirect(item.url)
         return FileResponse(item.file)
+
+
+class StatsApiViewSet(ModelViewSet):
+    http_method_names = ('get',)
+    renderer_classes = (JSONRenderer,)
+    queryset = Item.objects.all()
+    permission_classes = (IsAuthenticated,)
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        return queryset.filter(visit_count__gt=0)
+
+    def _format_response(self, queryset):
+        response = {}
+        for item in queryset:
+            create_date = item.create_date.strftime('%Y-%m-%d')
+            if create_date not in response:
+                response[create_date] = {
+                    'files': 0,
+                    'links': 0,
+                }
+                response[create_date]['links' if item.url else 'files'] += 1
+        return response
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        response = self._format_response(queryset)
+        return Response(response)

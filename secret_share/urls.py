@@ -20,10 +20,11 @@ from django.urls import include, path
 from rest_framework import routers
 from rest_framework.authtoken.views import obtain_auth_token
 
-from items.api import ItemApiViewSet
+from items.api import ItemApiViewSet, StatsApiViewSet
 
 router = routers.SimpleRouter()
 router.register('items', ItemApiViewSet)
+router.register('stats', StatsApiViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
