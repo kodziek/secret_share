@@ -25,6 +25,7 @@ class Item(models.Model):
     visit_count = models.PositiveIntegerField(default=0)
 
     objects = ItemManager.as_manager()
+    all_objects = models.Manager()
 
     def __str__(self):
         return self.url or str(self.file)

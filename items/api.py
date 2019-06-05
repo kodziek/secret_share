@@ -45,7 +45,7 @@ class ItemApiViewSet(ModelViewSet):
 class StatsApiViewSet(ModelViewSet):
     http_method_names = ('get',)
     renderer_classes = (JSONRenderer,)
-    queryset = Item.objects.all()
+    queryset = Item.all_objects.all()
     permission_classes = (IsAuthenticated,)
 
     def get_queryset(self):
