@@ -3,7 +3,13 @@ from datetime import datetime
 
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
+from django.core.files.storage import FileSystemStorage
 from django.db import models, transaction
+
+
+private_storage = FileSystemStorage(
+    location=f'{settings.BASE_DIR}{settings.PRIVATE_MEDIA}',
+)
 
 
 class ItemManager(models.QuerySet):
@@ -21,7 +27,7 @@ class Item(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     password = models.CharField(max_length=128)
     url = models.TextField(null=True, blank=True)
-    file = models.FileField(null=True, blank=True)
+    file = models.FileField(null=True, blank=True, storage=private_storage)
     visit_count = models.PositiveIntegerField(default=0)
 
     objects = ItemManager.as_manager()
