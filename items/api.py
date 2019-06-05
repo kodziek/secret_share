@@ -1,6 +1,7 @@
 from django.contrib.auth.hashers import check_password
 from django.http import Http404, FileResponse
 from django.shortcuts import redirect
+from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
@@ -12,6 +13,7 @@ class ItemApiViewSet(ModelViewSet):
     queryset = Item.objects.all()
     lookup_field = 'uuid'
     http_method_names = ('get', 'post')
+    parser_classes = (MultiPartParser,)
 
     def get_permissions(self):
         if self.action == 'create':

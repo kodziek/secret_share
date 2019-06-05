@@ -3,6 +3,7 @@ from rest_framework import serializers
 
 from core.helpers import generate_random_password
 from items.models import Item
+from items.validators import OneOf
 
 
 class ItemSerializer(serializers.ModelSerializer):
@@ -25,6 +26,9 @@ class ItemCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Item
         fields = ('url', 'file', 'password')
+        validators = [
+            OneOf(('url', 'file')),
+        ]
 
     def create(self, validated_data):
         password = generate_random_password()
