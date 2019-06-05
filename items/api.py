@@ -32,7 +32,7 @@ class ItemApiViewSet(ModelViewSet):
             raise Http404
         return obj
 
-    def get(self, request, *args, **kwargs):
+    def retrieve(self, request, *args, **kwargs):
         item = self.get_object()
         Item.increment_visit_count(item.pk)
         if item.url:
