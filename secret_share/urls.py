@@ -28,7 +28,7 @@ router.register('stats', StatsApiViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('login/', LoginView.as_view(), name='login'),
+    path('', LoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('item/', include('items.urls')),
     path('api/login/', obtain_auth_token),
