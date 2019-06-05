@@ -12,6 +12,7 @@ django-debug-toolbar = "*"
 uuid = "*"
 python-dateutil = "*"
 djangorestframework = "*"
+gunicorn = "*"
 
 [requires]
 python_version = "3.7"
