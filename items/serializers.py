@@ -17,7 +17,10 @@ class ItemResponseSerializer(serializers.Serializer):
     password = serializers.CharField()
 
     def get_url(self, obj):
-        return reverse('item-detail', kwargs={'uuid': obj.uuid})
+        request = self.context.pop()
+        return request.build_absolute_uri(
+            reverse('items:get', kwargs={'uuid': obj.uuid})
+        )
 
 
 class ItemCreateSerializer(serializers.ModelSerializer):
@@ -39,4 +42,6 @@ class ItemCreateSerializer(serializers.ModelSerializer):
         return item
 
     def to_representation(self, instance):
-        return ItemResponseSerializer(instance).data
+        return ItemResponseSerializer(
+            instance, context={self.context['request']},
+        ).data

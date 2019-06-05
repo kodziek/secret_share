@@ -3,7 +3,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 from django.views.generic import CreateView, FormView
 
 from core.helpers import generate_random_password
@@ -24,7 +24,16 @@ class CreateItemView(LoginRequiredMixin, CreateView):
         instance.password = make_password(password)
         instance.save()
 
-        messages.success(self.request, f'{password} {instance.uuid}')
+        url = self.request.build_absolute_uri(
+            reverse('items:get', kwargs={'uuid': instance.uuid})
+        )
+
+        messages.success(
+            self.request,
+            f'Your secret item is available on <a href="{url}">{url}</a> '
+            f'secured by password {password}.',
+            extra_tags='safe',
+        )
 
         return super().form_valid(form)
 
