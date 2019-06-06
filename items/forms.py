@@ -36,13 +36,13 @@ class ItemForm(forms.ModelForm):
 class ItemAccessForm(forms.Form):
     password = forms.CharField(widget=forms.PasswordInput)
 
-    def __init__(self, object, *args, **kwargs):
+    def __init__(self, item, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.object = object
+        self.item = item
 
     def clean(self):
         password = self.cleaned_data.get('password')
-        if not check_password(password, self.object.password):
+        if not check_password(password, self.item.password):
             raise ValidationError('Incorrect password.')
         return self.cleaned_data
 
