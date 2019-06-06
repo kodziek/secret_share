@@ -12,11 +12,10 @@ private_storage = FileSystemStorage(
 )
 
 
-class ItemManager(models.QuerySet):
-
-    def filter(self, *args, **kwargs):
+class ItemManager(models.Manager):
+    def get_queryset(self):
         yesterday = datetime.now() - relativedelta(days=1)
-        return super().filter(create_date__gte=yesterday, *args, **kwargs)
+        return super().get_queryset().filter(create_date__gt=yesterday)
 
 
 class Item(models.Model):
@@ -30,7 +29,7 @@ class Item(models.Model):
     file = models.FileField(null=True, blank=True, storage=private_storage)
     visit_count = models.PositiveIntegerField(default=0)
 
-    objects = ItemManager.as_manager()
+    objects = ItemManager()
     all_objects = models.Manager()
 
     def __str__(self):
