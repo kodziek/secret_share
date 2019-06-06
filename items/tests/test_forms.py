@@ -1,8 +1,10 @@
+from django.contrib.auth.hashers import make_password
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import SimpleTestCase
 
-from items.forms import ItemForm
+from items.factories import ItemFactory
+from items.forms import ItemForm, ItemAccessForm
 
 
 class ItemFormTestCase(SimpleTestCase):
@@ -53,3 +55,35 @@ class ItemFormTestCase(SimpleTestCase):
         error_msg = 'Cannot use both fields (url and file) at the same time.'
         with self.assertRaisesMessage(ValidationError, error_msg):
             form.clean()
+
+
+class ItemAccessFormTestCase(SimpleTestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.password = 'pwd'
+        cls.item = ItemFactory.build(password=make_password(cls.password))
+
+    @classmethod
+    def tearDownClass(cls):
+        pass
+
+    def test_password_missing(self):
+        form = ItemAccessForm(data={}, item=self.item)
+        self.assertFalse(form.is_valid())
+
+    def test_password_incorrect(self):
+        data = {
+            'password': 'incorrect',
+        }
+        form = ItemAccessForm(data=data, item=self.item)
+        self.assertFalse(form.is_valid())
+        error_msg = 'Incorrect password.'
+        with self.assertRaisesMessage(ValidationError, error_msg):
+            form.clean()
+
+    def test_password_correct(self):
+        data = {
+            'password': self.password,
+        }
+        form = ItemAccessForm(data=data, item=self.item)
+        self.assertTrue(form.is_valid())
