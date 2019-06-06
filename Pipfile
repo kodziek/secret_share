@@ -16,6 +16,7 @@ gunicorn = "*"
 whitenoise = "*"
 psycopg2-binary = "*"
 dj-database-url = "*"
+python-decouple = "*"
 
 [requires]
 python_version = "3.7"

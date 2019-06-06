@@ -1,4 +1,5 @@
 import dj_database_url
+from decouple import config
 
 from secret_share.settings import *
 
@@ -10,6 +11,4 @@ ALLOWED_HOSTS = (
     'secret-share-kodziek.herokuapp.com',
 )
 
-DATABASES['default'] = dj_database_url.config(
-    conn_max_age=600, ssl_require=True,
-)
+DATABASES['default'] = dj_database_url.config(default=config('DATABASE_URL'))
