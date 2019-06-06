@@ -1,10 +1,10 @@
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.hashers import make_password, check_password
 from django.core.exceptions import ValidationError
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import SimpleTestCase
 
 from items.factories import ItemFactory
-from items.forms import ItemForm, ItemAccessForm
+from items.forms import ItemForm, ItemAccessForm, ItemPasswordForm
 
 
 class ItemFormTestCase(SimpleTestCase):
@@ -67,11 +67,11 @@ class ItemAccessFormTestCase(SimpleTestCase):
     def tearDownClass(cls):
         pass
 
-    def test_password_missing(self):
+    def test_validation_password_missing(self):
         form = ItemAccessForm(data={}, item=self.item)
         self.assertFalse(form.is_valid())
 
-    def test_password_incorrect(self):
+    def test_validation_password_incorrect(self):
         data = {
             'password': 'incorrect',
         }
@@ -81,9 +81,22 @@ class ItemAccessFormTestCase(SimpleTestCase):
         with self.assertRaisesMessage(ValidationError, error_msg):
             form.clean()
 
-    def test_password_correct(self):
+    def test_validation_password_correct(self):
         data = {
             'password': self.password,
         }
         form = ItemAccessForm(data=data, item=self.item)
         self.assertTrue(form.is_valid())
+
+
+class ItemPasswordFormTestCase(SimpleTestCase):
+    def test_hashing_password(self):
+        password = 'pwd'
+        data = {
+            'password': password,
+        }
+        form = ItemPasswordForm(data)
+        self.assertTrue(form.is_valid())
+        self.assertTrue(
+            check_password(password, form.cleaned_data['password']),
+        )
