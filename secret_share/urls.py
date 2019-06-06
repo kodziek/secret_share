@@ -24,7 +24,7 @@ from items.api import ItemApiViewSet, StatsApiViewSet
 
 router = routers.SimpleRouter()
 router.register('items', ItemApiViewSet)
-router.register('stats', StatsApiViewSet)
+router.register('stats', StatsApiViewSet, basename='stats')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
