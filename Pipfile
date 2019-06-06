@@ -17,6 +17,8 @@ whitenoise = "*"
 psycopg2-binary = "*"
 dj-database-url = "*"
 python-decouple = "*"
+factory-boy = "*"
+factory = "*"
 
 [requires]
 python_version = "3.7"
