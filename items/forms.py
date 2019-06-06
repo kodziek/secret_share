@@ -50,6 +50,7 @@ class ItemAccessForm(forms.Form):
 class ItemPasswordForm(forms.ModelForm):
     class Meta:
         fields = ('password',)
+        model = Item
         widgets = {
             'password': forms.PasswordInput,
         }
