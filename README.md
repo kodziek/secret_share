@@ -14,6 +14,12 @@ And then application should be available under http://localhost:8000
 
 Admin panel is available under `[APP_URL]/admin`
 
+## Tests
+
+```bash
+$ ./manage.py test --settings=secret_share.settings_test
+```
+
 ## API endpoints
 
 ### Authorization
