@@ -52,7 +52,7 @@ class GetItemView(FormView):
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
-        kwargs['object'] = self.object
+        kwargs['item'] = self.object
         return kwargs
 
     def form_valid(self, form):
