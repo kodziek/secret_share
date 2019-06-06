@@ -19,6 +19,7 @@ psycopg2-binary = "*"
 dj-database-url = "*"
 python-decouple = "*"
 factory-boy = "*"
+django-extensions = "*"
 
 [requires]
 python_version = "3.7"
