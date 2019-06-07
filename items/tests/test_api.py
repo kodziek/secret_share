@@ -143,6 +143,7 @@ class ItemApiViewSet(BaseAPITestCase):
     def test_retrieve_incorrect_uuid_raises_not_found(self):
         response = self._request(url=f'{self.url}uuid/')
         json_response = json.loads(response.content)
+
         self.assertEqual(response.status_code, HTTP_404_NOT_FOUND)
         self.assertEqual(json_response, {'detail': 'Not found.'})
 
@@ -150,6 +151,9 @@ class ItemApiViewSet(BaseAPITestCase):
         item = ItemFactory(user=self.user)
         response = self._request(url=f'{self.url}{item.uuid}/')
         json_response = json.loads(response.content)
+        item.refresh_from_db()
+
+        self.assertEqual(item.visit_count, 0)
         self.assertEqual(response.status_code, HTTP_404_NOT_FOUND)
         self.assertEqual(json_response, {'detail': 'Not found.'})
 
@@ -159,6 +163,9 @@ class ItemApiViewSet(BaseAPITestCase):
             url=f'{self.url}{item.uuid}/?password=incorrect',
         )
         json_response = json.loads(response.content)
+        item.refresh_from_db()
+
+        self.assertEqual(item.visit_count, 0)
         self.assertEqual(response.status_code, HTTP_404_NOT_FOUND)
         self.assertEqual(json_response, {'detail': 'Not found.'})
 
@@ -168,9 +175,15 @@ class ItemApiViewSet(BaseAPITestCase):
             user=self.user, url='http://kodziek.pl',
             password=make_password(password),
         )
+
+        self.assertEqual(item.visit_count, 0)
+
         response = self._request(
             url=f'{self.url}{item.uuid}/?password={password}',
         )
+        item.refresh_from_db()
+
+        self.assertEqual(item.visit_count, 1)
         self.assertEqual(response.status_code, HTTP_302_FOUND)
         self.assertEqual(response.url, item.url)
 
@@ -181,13 +194,21 @@ class ItemApiViewSet(BaseAPITestCase):
             user=self.user, file=SimpleUploadedFile('file', content),
             password=make_password(password),
         )
+
+        self.assertEqual(item.visit_count, 0)
+
         response = self._request(
             url=f'{self.url}{item.uuid}/?password={password}',
         )
+        item.refresh_from_db()
+
+        self.assertEqual(item.visit_count, 1)
         self.assertEqual(response.status_code, HTTP_200_OK)
+
         response_content = b''
         for line in response.streaming_content:
             response_content += line
+
         self.assertEqual(response_content, content)
 
     def test_retrieve_item_older_than_one_day_returns_not_found(self):
@@ -200,6 +221,9 @@ class ItemApiViewSet(BaseAPITestCase):
         response = self._request(
             url=f'{self.url}{item.uuid}/?password={password}',
         )
+        item.refresh_from_db()
         json_response = json.loads(response.content)
+
+        self.assertEqual(item.visit_count, 0)
         self.assertEqual(response.status_code, HTTP_404_NOT_FOUND)
         self.assertEqual(json_response, {'detail': 'Not found.'})
