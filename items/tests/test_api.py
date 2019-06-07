@@ -227,3 +227,55 @@ class ItemApiViewSet(BaseAPITestCase):
         self.assertEqual(item.visit_count, 0)
         self.assertEqual(response.status_code, HTTP_404_NOT_FOUND)
         self.assertEqual(json_response, {'detail': 'Not found.'})
+
+
+class StatsApiViewSetTestCase(BaseAPITestCase):
+    url = reverse_lazy('stats-list')
+
+    def test_get_unauthorized(self):
+        response = self.client.get(self.url)
+        json_response = json.loads(response.content)
+
+        self.assertEqual(response.status_code, HTTP_401_UNAUTHORIZED)
+        self.assertEqual(
+            json_response,
+            {'detail': 'Authentication credentials were not provided.'},
+        )
+
+    def test_get_no_items(self):
+        response = self._request()
+        json_response = json.loads(response.content)
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(json_response, {})
+
+    def test_get_returns_proper_stats(self):
+        date1 = '2017-10-25'
+        date2 = '2017-10-26'
+        url = 'http://kodziek.pl'
+        file = SimpleUploadedFile('file', b'content')
+        expected_response = {
+            date1: {
+                'files': 2,
+                'links': 1,
+            },
+            date2: {
+                'files': 1,
+                'links': 0,
+            },
+        }
+
+        with freeze_time(date1):
+            ItemFactory(user=self.user, file=file, visit_count=1)
+            ItemFactory(user=self.user, file=file, visit_count=5)
+            ItemFactory(user=self.user, url=url, visit_count=2)
+        with freeze_time(date2):
+            ItemFactory(user=self.user, file=file, visit_count=2)
+            ItemFactory(user=self.user, file=file)
+            ItemFactory(user=self.user, url=url)
+
+        response = self._request()
+        json_response = json.loads(response.content)
+
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        self.assertEqual(json_response, expected_response)

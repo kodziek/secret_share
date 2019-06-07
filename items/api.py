@@ -61,7 +61,7 @@ class StatsApiViewSet(ModelViewSet):
                     'files': 0,
                     'links': 0,
                 }
-                response[create_date]['links' if item.url else 'files'] += 1
+            response[create_date]['links' if item.url else 'files'] += 1
         return response
 
     def list(self, request, *args, **kwargs):
