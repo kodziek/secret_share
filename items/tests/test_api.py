@@ -1,17 +1,24 @@
 import json
+from datetime import datetime
 
-from django.contrib.auth.hashers import check_password
+from dateutil.relativedelta import relativedelta
+from django.contrib.auth.hashers import check_password, make_password
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse_lazy
+from freezegun import freeze_time
 from rest_framework.authtoken.models import Token
 from rest_framework.status import (
+    HTTP_200_OK,
     HTTP_201_CREATED,
+    HTTP_302_FOUND,
     HTTP_400_BAD_REQUEST,
     HTTP_401_UNAUTHORIZED,
+    HTTP_404_NOT_FOUND,
 )
 from rest_framework.test import APITestCase
 
 from core.factories import UserFactory
+from items.factories import ItemFactory
 from items.models import Item
 
 
@@ -133,3 +140,72 @@ class ItemApiViewSet(BaseAPITestCase):
         )
         self.assertEqual(str(item.uuid), json_response['url'][-37:-1])
         self.assertIsNotNone(item.file)
+
+    def test_retrieve_incorrect_uuid_raises_not_found(self):
+        response = self._request(url=f'{self.url}uuid/')
+        json_response = json.loads(response.content)
+        self.assertEqual(response.status_code, HTTP_404_NOT_FOUND)
+        self.assertEqual(json_response, {'detail': 'Not found.'})
+
+    def test_retrieve_missing_password_raises_not_found(self):
+        item = ItemFactory(user=self.user)
+        item.save()
+        response = self._request(url=f'{self.url}{item.uuid}/')
+        json_response = json.loads(response.content)
+        self.assertEqual(response.status_code, HTTP_404_NOT_FOUND)
+        self.assertEqual(json_response, {'detail': 'Not found.'})
+
+    def test_retrieve_incorrect_password_raises_not_found(self):
+        item = ItemFactory(user=self.user)
+        item.save()
+        response = self._request(
+            url=f'{self.url}{item.uuid}/?password=incorrect',
+        )
+        json_response = json.loads(response.content)
+        self.assertEqual(response.status_code, HTTP_404_NOT_FOUND)
+        self.assertEqual(json_response, {'detail': 'Not found.'})
+
+    def test_retrieve_correct_password_redirects_to_url(self):
+        password = 'password'
+        item = ItemFactory(
+            user=self.user, url='http://kodziek.pl',
+            password=make_password(password),
+        )
+        item.save()
+        response = self._request(
+            url=f'{self.url}{item.uuid}/?password={password}',
+        )
+        self.assertEqual(response.status_code, HTTP_302_FOUND)
+        self.assertEqual(response.url, item.url)
+
+    def test_retrieve_correct_password_returns_file(self):
+        password = 'password'
+        content = b'content'
+        item = ItemFactory(
+            user=self.user, file=SimpleUploadedFile('file', content),
+            password=make_password(password),
+        )
+        item.save()
+        response = self._request(
+            url=f'{self.url}{item.uuid}/?password={password}',
+        )
+        self.assertEqual(response.status_code, HTTP_200_OK)
+        response_content = b''
+        for line in response.streaming_content:
+            response_content += line
+        self.assertEqual(response_content, content)
+
+    def test_retrieve_item_older_than_one_day_returns_not_found(self):
+        password = 'password'
+        with freeze_time(datetime.now() - relativedelta(days=1, seconds=2)):
+            item = ItemFactory(
+                user=self.user, url='http://kodziek.pl',
+                password=make_password(password),
+            )
+            item.save()
+        response = self._request(
+            url=f'{self.url}{item.uuid}/?password={password}',
+        )
+        json_response = json.loads(response.content)
+        self.assertEqual(response.status_code, HTTP_404_NOT_FOUND)
+        self.assertEqual(json_response, {'detail': 'Not found.'})
