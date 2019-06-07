@@ -28,7 +28,6 @@ class BaseAPITestCase(APITestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user = UserFactory()
-        cls.user.save()
         cls.token = Token.objects.create(user=cls.user)
 
     def _request(self, method='get', data=None, url=None):
@@ -149,7 +148,6 @@ class ItemApiViewSet(BaseAPITestCase):
 
     def test_retrieve_missing_password_raises_not_found(self):
         item = ItemFactory(user=self.user)
-        item.save()
         response = self._request(url=f'{self.url}{item.uuid}/')
         json_response = json.loads(response.content)
         self.assertEqual(response.status_code, HTTP_404_NOT_FOUND)
@@ -157,7 +155,6 @@ class ItemApiViewSet(BaseAPITestCase):
 
     def test_retrieve_incorrect_password_raises_not_found(self):
         item = ItemFactory(user=self.user)
-        item.save()
         response = self._request(
             url=f'{self.url}{item.uuid}/?password=incorrect',
         )
@@ -171,7 +168,6 @@ class ItemApiViewSet(BaseAPITestCase):
             user=self.user, url='http://kodziek.pl',
             password=make_password(password),
         )
-        item.save()
         response = self._request(
             url=f'{self.url}{item.uuid}/?password={password}',
         )
@@ -185,7 +181,6 @@ class ItemApiViewSet(BaseAPITestCase):
             user=self.user, file=SimpleUploadedFile('file', content),
             password=make_password(password),
         )
-        item.save()
         response = self._request(
             url=f'{self.url}{item.uuid}/?password={password}',
         )
@@ -202,7 +197,6 @@ class ItemApiViewSet(BaseAPITestCase):
                 user=self.user, url='http://kodziek.pl',
                 password=make_password(password),
             )
-            item.save()
         response = self._request(
             url=f'{self.url}{item.uuid}/?password={password}',
         )

@@ -13,7 +13,6 @@ class ItemModelTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         user = UserFactory()
-        user.save()
         with freeze_time(cls.yesterday):
             cls._create_item(user)
         with freeze_time(cls.almost_yesterday):
@@ -23,7 +22,7 @@ class ItemModelTestCase(TestCase):
 
     @classmethod
     def _create_item(cls, user):
-        ItemFactory(password='a', user=user).save()
+        ItemFactory(password='a', user=user)
 
     @freeze_time(today)
     def test_default_manager_returns_only_today_item(self):
