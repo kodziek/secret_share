@@ -6,6 +6,7 @@ from django.contrib.auth.hashers import check_password, make_password
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse_lazy
 from freezegun import freeze_time
+from parameterized import parameterized
 from rest_framework.authtoken.models import Token
 from rest_framework.status import (
     HTTP_200_OK,
@@ -14,6 +15,7 @@ from rest_framework.status import (
     HTTP_400_BAD_REQUEST,
     HTTP_401_UNAUTHORIZED,
     HTTP_404_NOT_FOUND,
+    HTTP_405_METHOD_NOT_ALLOWED,
 )
 from rest_framework.test import APITestCase
 
@@ -49,6 +51,14 @@ class ItemApiViewSet(BaseAPITestCase):
             json_response,
             {'detail': 'Authentication credentials were not provided.'},
         )
+
+    @parameterized.expand([
+        'put', 'patch', 'delete',
+    ])
+    def test_unsupported_methods(self, method):
+        response = self._request(method, {})
+
+        self.assertEqual(response.status_code, HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_post_authorized_missing_data(self):
         response = self._request('post', {})
@@ -241,6 +251,14 @@ class StatsApiViewSetTestCase(BaseAPITestCase):
             json_response,
             {'detail': 'Authentication credentials were not provided.'},
         )
+
+    @parameterized.expand([
+        'post', 'put', 'patch', 'delete',
+    ])
+    def test_unsupported_methods(self, method):
+        response = self._request(method, {})
+
+        self.assertEqual(response.status_code, HTTP_405_METHOD_NOT_ALLOWED)
 
     def test_get_no_items(self):
         response = self._request()
