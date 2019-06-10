@@ -1,0 +1,13 @@
+[run]
+branch = True
+source = .
+omit =
+    secret_share/settings*
+    *tests*
+    *migrations*
+    *__init__*
+    *urls*
+    *apps*
+    *wsgi*
+    manage.py
+    *factories*
