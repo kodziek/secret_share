@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from dateutil.relativedelta import relativedelta
+from django.conf import settings
 from django.contrib.auth.hashers import make_password
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
@@ -100,7 +100,7 @@ class GetItemViewTestCase(TestCase):
         cls.file_content = b'content'
         cls.password = 'password'
         cls.password_encrypted = make_password(cls.password)
-        with freeze_time(datetime.now() - relativedelta(days=1)):
+        with freeze_time(datetime.now() - settings.ITEMS_LIFETIME):
             cls.old_item = ItemFactory(
                 user=cls.user, url=reverse('login'),
                 password=cls.password_encrypted,

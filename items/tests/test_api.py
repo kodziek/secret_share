@@ -2,6 +2,7 @@ import json
 from datetime import datetime
 
 from dateutil.relativedelta import relativedelta
+from django.conf import settings
 from django.contrib.auth.hashers import check_password, make_password
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse_lazy
@@ -223,7 +224,10 @@ class ItemApiViewSet(BaseAPITestCase):
 
     def test_retrieve_item_older_than_one_day_returns_not_found(self):
         password = 'password'
-        with freeze_time(datetime.now() - relativedelta(days=1, seconds=2)):
+        past_date = (
+            datetime.now() - settings.ITEMS_LIFETIME - relativedelta(seconds=5)
+        )
+        with freeze_time(past_date):
             item = ItemFactory(
                 user=self.user, url='http://kodziek.pl',
                 password=make_password(password),

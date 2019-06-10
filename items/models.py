@@ -1,11 +1,9 @@
 import uuid
 from datetime import datetime
 
-from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 from django.db import models, transaction
-
 
 private_storage = FileSystemStorage(
     location=f'{settings.BASE_DIR}{settings.PRIVATE_MEDIA}',
@@ -14,8 +12,8 @@ private_storage = FileSystemStorage(
 
 class ItemManager(models.Manager):
     def get_queryset(self):
-        yesterday = datetime.now() - relativedelta(days=1)
-        return super().get_queryset().filter(create_date__gt=yesterday)
+        timedelta = datetime.now() - settings.ITEMS_LIFETIME
+        return super().get_queryset().filter(create_date__gt=timedelta)
 
 
 class Item(models.Model):

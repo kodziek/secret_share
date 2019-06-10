@@ -1,3 +1,7 @@
+from datetime import datetime
+
+from dateutil.relativedelta import relativedelta
+from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from freezegun import freeze_time
@@ -8,15 +12,16 @@ from items.models import Item
 
 
 class ItemModelTestCase(TestCase):
-    yesterday = '2000-01-01 00:00:00'
-    almost_yesterday = '2000-01-01 00:00:01'
-    today = '2000-01-02 00:00:00'
+    today = datetime.now()
+    too_old = today - settings.ITEMS_LIFETIME
+    almost_too_old = too_old + relativedelta(seconds=5)
+
     @classmethod
     def setUpTestData(cls):
         user = UserFactory()
-        with freeze_time(cls.yesterday):
+        with freeze_time(cls.too_old):
             cls.url_item = cls._create_item(user, url='http://kodziek.pl')
-        with freeze_time(cls.almost_yesterday):
+        with freeze_time(cls.almost_too_old):
             cls.file_item = cls.file_url = cls._create_item(
                 user, file=SimpleUploadedFile('file', b'content'),
             )
@@ -28,11 +33,11 @@ class ItemModelTestCase(TestCase):
         return ItemFactory(password='a', user=user, **kwargs)
 
     @freeze_time(today)
-    def test_default_manager_returns_only_today_item(self):
+    def test_default_manager_returns_only_active_items(self):
         self.assertEqual(Item.objects.all().count(), 2)
 
     @freeze_time(today)
-    def test_all_objects_manager_returns_only_today_item(self):
+    def test_all_objects_manager_returns_all_items(self):
         self.assertEqual(Item.all_objects.all().count(), 3)
 
     def test_str_for_item_with_url(self):
