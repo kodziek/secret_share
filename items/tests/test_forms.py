@@ -77,9 +77,7 @@ class ItemAccessFormTestCase(SimpleTestCase):
         }
         form = ItemAccessForm(data=data, item=self.item)
         self.assertFalse(form.is_valid())
-        error_msg = 'Incorrect password.'
-        with self.assertRaisesMessage(ValidationError, error_msg):
-            form.clean()
+        self.assertEqual(form.errors['password'], ['Incorrect password.'])
 
     def test_validation_password_correct(self):
         data = {

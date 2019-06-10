@@ -43,7 +43,7 @@ class ItemAccessForm(forms.Form):
     def clean(self):
         password = self.cleaned_data.get('password')
         if not check_password(password, self.item.password):
-            raise ValidationError('Incorrect password.')
+            self.add_error('password', 'Incorrect password.')
         return self.cleaned_data
 
 

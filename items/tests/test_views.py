@@ -1,8 +1,14 @@
+from datetime import datetime
+
+from dateutil.relativedelta import relativedelta
+from django.contrib.auth.hashers import make_password
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import TestCase
 from django.urls import reverse, reverse_lazy
+from freezegun import freeze_time
 
 from core.factories import UserFactory
+from items.factories import ItemFactory
 from items.models import Item
 
 
@@ -85,3 +91,100 @@ class CreateItemViewTestCase(TestCase):
 
         self.assertRedirects(response, self.url)
         self.assertEqual(items.count(), 1)
+
+
+class GetItemViewTestCase(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = UserFactory()
+        cls.file_content = b'content'
+        cls.password = 'password'
+        cls.password_encrypted = make_password(cls.password)
+        with freeze_time(datetime.now() - relativedelta(days=1)):
+            cls.old_item = ItemFactory(
+                user=cls.user, url=reverse('login'),
+                password=cls.password_encrypted,
+            )
+            cls.old_item_url = reverse(
+                'items:get', kwargs={'uuid': cls.old_item.uuid},
+            )
+
+    def setUp(self):
+        self.url_item = ItemFactory(
+            user=self.user, url=reverse('login'),
+            password=self.password_encrypted,
+        )
+        self.file_item = ItemFactory(
+            user=self.user, file=SimpleUploadedFile('file', self.file_content),
+            password=self.password_encrypted,
+        )
+        self.url_item_url = reverse(
+            'items:get', kwargs={'uuid': self.url_item.uuid},
+        )
+        self.file_item_url = reverse(
+            'items:get', kwargs={'uuid': self.file_item.uuid},
+        )
+
+    def test_get(self):
+        response = self.client.get(self.url_item_url)
+
+        self.assertEqual(response.status_code, 200)
+
+    def test_get_old_file_raises_404_not_found(self):
+        response = self.client.get(self.old_item_url)
+
+        self.assertEqual(response.status_code, 404)
+
+    def test_post_missing_data(self):
+        response = self.client.post(self.url_item_url, {})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFormError(
+            response, 'form', 'password', ['This field is required.'],
+        )
+
+    def test_post_incorrect_password(self):
+        data = {
+            'password': 'incorrect',
+        }
+        response = self.client.post(self.url_item_url, data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFormError(
+            response, 'form', 'password', ['Incorrect password.'],
+        )
+
+    def test_post_redirect_to_item_url(self):
+        data = {
+            'password': self.password,
+        }
+        response = self.client.post(self.url_item_url, data)
+        self.url_item.refresh_from_db()
+
+        self.assertRedirects(response, self.url_item.url)
+        self.assertEqual(self.url_item.visit_count, 1)
+
+    def test_post_returns_file(self):
+        data = {
+            'password': self.password,
+        }
+        response = self.client.post(self.file_item_url, data)
+        self.file_item.refresh_from_db()
+
+        response_content = b''
+        for line in response.streaming_content:
+            response_content += line
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response_content, self.file_content)
+        self.assertEqual(self.file_item.visit_count, 1)
+
+    def test_post_to_old_file_raises_404_not_found(self):
+        data = {
+            'password': self.password,
+        }
+        response = self.client.post(self.old_item_url, data)
+        self.old_item.refresh_from_db()
+
+        self.assertEqual(response.status_code, 404)
+        self.assertEqual(self.url_item.visit_count, 0)
