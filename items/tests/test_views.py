@@ -19,19 +19,19 @@ class CreateItemViewTestCase(TestCase):
     def setUpTestData(cls):
         cls.user = UserFactory()
 
-    def test_unauthorized(self):
+    def test_unauthorized_redirects_to_login_page(self):
         response = self.client.get(self.url)
         login_url = reverse('login')
 
         self.assertRedirects(response, f'{login_url}?next={self.url}')
 
-    def test_get_method(self):
+    def test_get_method_renders_item_form(self):
         self.client.force_login(self.user)
         response = self.client.get(self.url)
 
         self.assertEqual(response.status_code, 200)
 
-    def test_post_empty_form(self):
+    def test_post_empty_form_raises_error(self):
         self.client.force_login(self.user)
         response = self.client.post(self.url, {})
 
@@ -42,7 +42,7 @@ class CreateItemViewTestCase(TestCase):
         )
         self.assertEqual(Item.objects.count(), 0)
 
-    def test_post_incorrect_url(self):
+    def test_post_incorrect_url_raises_error(self):
         self.client.force_login(self.user)
         data = {
             'url': 'incorrect',
@@ -55,7 +55,7 @@ class CreateItemViewTestCase(TestCase):
         )
         self.assertEqual(Item.objects.count(), 0)
 
-    def test_post_both_fields_error(self):
+    def test_post_send_both_fields_raises_error(self):
         self.client.force_login(self.user)
         data = {
             'url': 'http://kodziek.pl',
@@ -125,7 +125,7 @@ class GetItemViewTestCase(TestCase):
             'items:get', kwargs={'uuid': self.file_item.uuid},
         )
 
-    def test_get(self):
+    def test_get_renders_password_form(self):
         response = self.client.get(self.url_item_url)
 
         self.assertEqual(response.status_code, 200)
@@ -135,7 +135,7 @@ class GetItemViewTestCase(TestCase):
 
         self.assertEqual(response.status_code, 404)
 
-    def test_post_missing_data(self):
+    def test_post_missing_data_raises_error(self):
         response = self.client.post(self.url_item_url, {})
 
         self.assertEqual(response.status_code, 200)
@@ -143,7 +143,7 @@ class GetItemViewTestCase(TestCase):
             response, 'form', 'password', ['This field is required.'],
         )
 
-    def test_post_incorrect_password(self):
+    def test_post_incorrect_password_raises_error(self):
         data = {
             'password': 'incorrect',
         }
