@@ -22,6 +22,7 @@ dj-database-url = "*"
 python-decouple = "*"
 factory-boy = "*"
 django-extensions = "*"
+django-crispy-forms = "*"
 
 [requires]
 python_version = "3.7"
